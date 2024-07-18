@@ -2,9 +2,10 @@ async function fetchItems() {
     try {
         const response = await fetch('http://localhost:3000/api/items');
         if (!response.ok) {
-            throw new Error('Erro ao buscar os itens');
+            throw new Error('Erro ao buscar itens: ' + response.statusText);
         }
         const items = await response.json();
+        console.log('Itens recuperados:', items); // Log dos itens recuperados
         const itemsContainer = document.getElementById('items');
         itemsContainer.innerHTML = '';
 
@@ -24,7 +25,7 @@ async function fetchItems() {
             itemsContainer.innerHTML += itemCard;
         });
     } catch (error) {
-        console.error(error.message);
+        console.error('Erro ao buscar os itens:', error); // Log do erro detalhado
     }
 }
 
@@ -43,12 +44,13 @@ document.getElementById('itemForm').addEventListener('submit', async (e) => {
             body: formData,
         });
         if (!response.ok) {
-            throw new Error('Erro ao enviar o item');
+            throw new Error('Erro ao adicionar item: ' + response.statusText);
         }
+        console.log('Item adicionado com sucesso'); // Log de sucesso
         document.getElementById('itemForm').reset();
         fetchItems();
     } catch (error) {
-        console.error(error.message);
+        console.error('Erro ao adicionar item:', error); // Log do erro detalhado
     }
 });
 
