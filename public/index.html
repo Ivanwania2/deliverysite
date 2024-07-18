@@ -2,24 +2,37 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Delivery</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio de Delivery</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Cardápio</h1>
-
-        <!-- Formulário para adicionar itens -->
-        <form id="itemForm" class="mb-4">
-            <input type="text" id="nome" placeholder="Nome do Item" required class="form-control mb-2">
-            <input type="text" id="descricao" placeholder="Descrição do Item" required class="form-control mb-2">
-            <input type="number" id="valor" placeholder="Valor" required class="form-control mb-2">
-            <input type="file" id="imagem" required class="form-control mb-2">
+        <h1 class="mb-4">Cardápio</h1>
+        <form id="itemForm">
+            <div class="form-group">
+                <label for="nome">Nome do Item</label>
+                <input type="text" class="form-control" id="nome" required>
+            </div>
+            <div class="form-group">
+                <label for="descricao">Descrição do Item</label>
+                <textarea class="form-control" id="descricao" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="valor">Valor (R$)</label>
+                <input type="number" class="form-control" id="valor" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="imagem">Imagem do Item</label>
+                <input type="file" class="form-control-file" id="imagem" required>
+            </div>
             <button type="submit" class="btn btn-primary">Adicionar Item</button>
         </form>
-
-        <div id="items" class="row"></div>
+        <div class="row mt-5" id="items">
+            <!-- Itens serão adicionados aqui -->
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
 </html>
+
