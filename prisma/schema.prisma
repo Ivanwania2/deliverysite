@@ -13,5 +13,5 @@ model Item {
   nome      String
   descricao String
   valor     Float
-  imagem    String
+  imagem    String?
 }
