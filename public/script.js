@@ -1,11 +1,13 @@
 async function fetchItems() {
     try {
         const response = await fetch('http://localhost:3000/api/items');
-        if (!response.ok) {
-            throw new Error('Erro ao buscar itens: ' + response.statusText);
-        }
         const items = await response.json();
-        console.log('Itens recuperados:', items); // Log dos itens recuperados
+        console.log('Resposta da API:', items);
+
+        if (!Array.isArray(items)) {
+            throw new Error('Resposta da API não é uma matriz');
+        }
+
         const itemsContainer = document.getElementById('items');
         itemsContainer.innerHTML = '';
 
@@ -25,32 +27,35 @@ async function fetchItems() {
             itemsContainer.innerHTML += itemCard;
         });
     } catch (error) {
-        console.error('Erro ao buscar os itens:', error); // Log do erro detalhado
+        console.error('Erro ao buscar os itens', error);
+        alert('Erro ao buscar os itens');
     }
 }
 
 document.getElementById('itemForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append('nome', document.getElementById('nome').value);
-    formData.append('descricao', document.getElementById('descricao').value);
-    formData.append('valor', parseFloat(document.getElementById('valor').value));
-    formData.append('imagem', document.getElementById('imagem').files[0]);
-
     try {
+        const formData = new FormData();
+        formData.append('nome', document.getElementById('nome').value);
+        formData.append('descricao', document.getElementById('descricao').value);
+        formData.append('valor', parseFloat(document.getElementById('valor').value));
+        formData.append('imagem', document.getElementById('imagem').files[0]);
+
         const response = await fetch('http://localhost:3000/api/items', {
             method: 'POST',
             body: formData,
         });
+
         if (!response.ok) {
-            throw new Error('Erro ao adicionar item: ' + response.statusText);
+            throw new Error('Erro ao criar item');
         }
-        console.log('Item adicionado com sucesso'); // Log de sucesso
+
         document.getElementById('itemForm').reset();
         fetchItems();
     } catch (error) {
-        console.error('Erro ao adicionar item:', error); // Log do erro detalhado
+        console.error('Erro ao criar item', error);
+        alert(`Erro ao criar item: ${error.message}`);
     }
 });
 

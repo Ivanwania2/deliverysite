@@ -3,33 +3,19 @@ const { PrismaClient } = require('@prisma/client');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
-const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
-// Certifique-se de que a pasta uploads existe
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)){
-    fs.mkdirSync(uploadDir);
-}
-
-// Configuração do multer para armazenar imagens
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const app = express();
 const prisma = new PrismaClient();
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
-app.use('/uploads', express.static(uploadDir)); // Serve os arquivos de imagem
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
@@ -38,11 +24,11 @@ app.get('/', (req, res) => {
 app.get('/api/items', async (req, res) => {
     try {
         console.log('Recebida solicitação GET para /api/items');
-        const items = await prisma.item.findMany();
+        const items = await prisma.items.findMany();
         console.log('Itens recuperados do banco de dados:', items);
         res.json(items);
     } catch (error) {
-        console.error('Erro ao buscar itens:', error); // Log do erro detalhado
+        console.error('Erro ao buscar itens:', error);
         res.status(500).json({ error: 'Erro ao buscar itens' });
     }
 });
@@ -50,22 +36,34 @@ app.get('/api/items', async (req, res) => {
 app.post('/api/items', upload.single('imagem'), async (req, res) => {
     try {
         const { nome, descricao, valor } = req.body;
-        if (!req.file) {
-            throw new Error('Arquivo de imagem não foi enviado');
-        }
-        const newItem = await prisma.item.create({
+        const imagem = req.file;
+
+        const { data, error } = await supabase.storage
+            .from('images')  // Certifique-se de que o bucket 'images' exista
+            .upload(`public/${imagem.originalname}`, imagem.buffer, {
+                cacheControl: '3600',
+                upsert: false,
+                contentType: imagem.mimetype,
+            });
+
+        if (error) throw new Error(`Erro ao fazer upload da imagem: ${error.message}`);
+
+        const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/images/public/${imagem.originalname}`;
+
+        const newItem = await prisma.items.create({
             data: {
                 nome,
                 descricao,
-                valor: parseFloat(valor), // Certifique-se de que o valor é um número
-                imagem: `/uploads/${req.file.filename}`, // Caminho da imagem
+                valor: parseFloat(valor),
+                imagem: imageUrl, // URL da imagem
             },
         });
+
         console.log('Novo item criado:', newItem);
         res.json(newItem);
     } catch (error) {
-        console.error('Erro ao criar item:', error); // Log do erro detalhado
-        res.status(500).json({ error: 'Erro ao criar item' });
+        console.error('Erro ao criar item:', error);
+        res.status(500).json({ error: `Erro ao criar item, Detalhes: ${error.message}` });
     }
 });
 
